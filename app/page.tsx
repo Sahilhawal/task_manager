@@ -9,9 +9,12 @@ import AddTaskModal from "./components/AddTaskModal";
 const STORAGE_KEY = "tasks_list";
 
 export default function Home() {
-  const [addedTasks, setAddedTasks] = useState<Task[]>([]);
-  const [startedTasks, setStartedTasks] = useState<Task[]>([]);
-  const [completedTasks, setCompletedTasks] = useState<Task[]>([]);
+  const [tasks, setTasks] = useState<Record<TaskTypes, Task[]>>({
+    added: [],
+    started: [],
+    completed: [],
+  });
+
   const [showAddForm, setShowAddForm] = useState(false);
   const [addTaskType, setAddTaskType] = useState<TaskTypes>();
 
@@ -19,23 +22,20 @@ export default function Home() {
     const storedData = localStorage.getItem(STORAGE_KEY);
     if (storedData) {
       const { added, started, completed } = JSON.parse(storedData);
-      setAddedTasks(added || []);
-      setStartedTasks(started || []);
-      setCompletedTasks(completed || []);
+      setTasks({
+        added: added || [],
+        started: started || [],
+        completed: completed || [],
+      });
     }
   }, []);
 
   useEffect(() => {
     storeDataToLocalStorage();
-  }, [addedTasks, startedTasks, completedTasks]);
+  }, [tasks]);
 
   const storeDataToLocalStorage = () => {
-    const dataToStore = {
-      added: addedTasks,
-      started: startedTasks,
-      completed: completedTasks,
-    };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToStore));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
   };
 
   const onDragEnd = (result: any) => {
@@ -50,32 +50,23 @@ export default function Home() {
       return;
     }
 
-    const sourceColId = source.droppableId;
-    const destinationColId = destination.droppableId;
+    const sourceColId: TaskTypes = source.droppableId;
+    const destinationColId: TaskTypes = destination.droppableId;
 
     if (sourceColId === destinationColId) {
       return;
     }
 
-    const startTasks = getTasksByType(sourceColId);
+    const startTasks = [...tasks[sourceColId]];
     const [removed] = startTasks.splice(source.index, 1);
-    const endTasks = getTasksByType(destinationColId);
+    const endTasks = [...tasks[destinationColId]];
     endTasks.splice(destination.index, 0, removed);
 
-    setTasksByType(sourceColId, startTasks);
-    setTasksByType(destinationColId, endTasks);
-  };
-
-  const getTasksByType = (type: string) => {
-    if (type === "added") return addedTasks;
-    else if (type === "started") return startedTasks;
-    else return completedTasks;
-  };
-
-  const setTasksByType = (type: string, tasks: any) => {
-    if (type === "added") setAddedTasks(tasks);
-    if (type === "started") setStartedTasks(tasks);
-    if (type === "completed") setCompletedTasks(tasks);
+    setTasks({
+      ...tasks,
+      [sourceColId]: startTasks,
+      [destinationColId]: endTasks,
+    });
   };
 
   const buildTaskObj = (task: string): Task => {
@@ -92,20 +83,20 @@ export default function Home() {
   };
 
   const handleAddTask = (task: string) => {
-    if (addTaskType === "added")
-      setAddedTasks([...addedTasks, buildTaskObj(task)]);
-    if (addTaskType === "started")
-      setStartedTasks([...startedTasks, buildTaskObj(task)]);
-    if (addTaskType === "completed")
-      setCompletedTasks([...completedTasks, buildTaskObj(task)]);
+    setTasks({
+      ...tasks,
+      [addTaskType!]: [...tasks[addTaskType!], buildTaskObj(task)],
+    });
 
     setShowAddForm(false);
   };
 
   const onDeleteClick = (type: TaskTypes, taskId: number) => {
-    const tasks = getTasksByType(type);
-    const updatedTasks = tasks.filter((t) => t.id !== taskId);
-    setTasksByType(type, updatedTasks);
+    const updatedTasks = tasks[type].filter((t) => t.id !== taskId);
+    setTasks({
+      ...tasks,
+      [type]: updatedTasks,
+    });
   };
 
   return (
@@ -129,27 +120,15 @@ export default function Home() {
           </div>
 
           <div className="px-16 flex justify-between space-x-4">
-            <TaskList
-              key={"added"}
-              column={COLUMNS["added"]}
-              tasks={addedTasks}
-              onAddClick={() => onAddClick("added")}
-              onDeleteClick={onDeleteClick}
-            />
-            <TaskList
-              key={"started"}
-              column={COLUMNS["started"]}
-              tasks={startedTasks}
-              onAddClick={() => onAddClick("started")}
-              onDeleteClick={onDeleteClick}
-            />
-            <TaskList
-              key={"completed"}
-              column={COLUMNS["completed"]}
-              tasks={completedTasks}
-              onAddClick={() => onAddClick("completed")}
-              onDeleteClick={onDeleteClick}
-            />
+            {Object.values(COLUMNS).map((column) => (
+              <TaskList
+                key={column.id}
+                column={column}
+                tasks={tasks[column.id]}
+                onAddClick={() => onAddClick(column.id as TaskTypes)}
+                onDeleteClick={onDeleteClick}
+              />
+            ))}
           </div>
         </div>
       </DragDropContext>

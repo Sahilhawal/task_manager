@@ -1,19 +1,19 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { DragDropContext } from "react-beautiful-dnd";
 import TaskList from "./components/TaskList";
 import { Task, TaskTypes, COLUMNS } from "./constants";
 import AddTaskModal from "./components/AddTaskModal";
 
 const STORAGE_KEY = "tasks_list";
+
 export default function Home() {
   const [addedTasks, setAddedTasks] = useState<Task[]>([]);
   const [startedTasks, setStartedTasks] = useState<Task[]>([]);
   const [completedTasks, setCompletedTasks] = useState<Task[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [addTaskType, setAddTaskType] = useState<TaskTypes>();
-  const [task, setTask] = useState<string>("");
 
   useEffect(() => {
     const storedData = localStorage.getItem(STORAGE_KEY);
@@ -67,14 +67,14 @@ export default function Home() {
   };
 
   const getTasksByType = (type: string) => {
-    if (type == "added") return addedTasks;
-    else if (type == "started") return startedTasks;
+    if (type === "added") return addedTasks;
+    else if (type === "started") return startedTasks;
     else return completedTasks;
   };
 
   const setTasksByType = (type: string, tasks: any) => {
-    if (type == "added") setAddedTasks(tasks);
-    if (type == "started") setStartedTasks(tasks);
+    if (type === "added") setAddedTasks(tasks);
+    if (type === "started") setStartedTasks(tasks);
     if (type === "completed") setCompletedTasks(tasks);
   };
 
@@ -91,7 +91,7 @@ export default function Home() {
     setAddTaskType(type);
   };
 
-  const handleAddTask = () => {
+  const handleAddTask = (task: string) => {
     if (addTaskType === "added")
       setAddedTasks([...addedTasks, buildTaskObj(task)]);
     if (addTaskType === "started")
@@ -102,7 +102,7 @@ export default function Home() {
     setShowAddForm(false);
   };
 
-  const handleDeleteTask = (type: TaskTypes, taskId: number) => {
+  const onDeleteClick = (type: TaskTypes, taskId: number) => {
     const tasks = getTasksByType(type);
     const updatedTasks = tasks.filter((t) => t.id !== taskId);
     setTasksByType(type, updatedTasks);
@@ -112,7 +112,6 @@ export default function Home() {
     <>
       {showAddForm && (
         <AddTaskModal
-          onInputChange={(e: any) => setTask(e.target.value)}
           onClickAdd={handleAddTask}
           onCloseClick={() => setShowAddForm(false)}
         />
@@ -135,21 +134,21 @@ export default function Home() {
               column={COLUMNS["added"]}
               tasks={addedTasks}
               onAddClick={() => onAddClick("added")}
-              onDeleteClick={handleDeleteTask}
+              onDeleteClick={onDeleteClick}
             />
             <TaskList
               key={"started"}
               column={COLUMNS["started"]}
               tasks={startedTasks}
               onAddClick={() => onAddClick("started")}
-              onDeleteClick={handleDeleteTask}
+              onDeleteClick={onDeleteClick}
             />
             <TaskList
               key={"completed"}
               column={COLUMNS["completed"]}
               tasks={completedTasks}
               onAddClick={() => onAddClick("completed")}
-              onDeleteClick={handleDeleteTask}
+              onDeleteClick={onDeleteClick}
             />
           </div>
         </div>

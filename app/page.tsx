@@ -3,10 +3,8 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { DragDropContext } from "react-beautiful-dnd";
 import TaskList from "./components/TaskList";
-import { Task, TaskTypes, COLUMNS } from "./constants";
+import { Task, TaskTypes, COLUMNS, STORAGE_KEY } from "./constants";
 import AddTaskModal from "./components/AddTaskModal";
-
-const STORAGE_KEY = "tasks_list";
 
 export default function Home() {
   const [tasks, setTasks] = useState<Record<TaskTypes, Task[]>>({

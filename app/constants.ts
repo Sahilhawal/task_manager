@@ -13,3 +13,5 @@ export const COLUMNS: Columns = {
   started: { id: "started", name: "Started" },
   completed: { id: "completed", name: "Completed" },
 };
+
+export const STORAGE_KEY = "tasks_list";

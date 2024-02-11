@@ -17,7 +17,7 @@ const TaskCard: React.FC<props> = ({
 }) => {
   return (
     <div
-      className={`mb-2 h-16 bg-white rounded-md p-4 text-black ${
+      className={`flex justify-between items-center mb-4 h-auto bg-white rounded-md p-4 text-black ${
         draggableSnapshot.isDragging ? "ring-2 ring-blue-300" : ""
       }`}
       ref={draggableProvided.innerRef}
@@ -27,7 +27,7 @@ const TaskCard: React.FC<props> = ({
       <p>{task.content}</p>
       <button
         onClick={() => onDeleteClick(column.id, task.id)}
-        className="mt-2 text-xs text-gray-500 bg-white hover:bg-gray-200 px-2 py-1 rounded-md focus:outline-none focus:ring focus:border-blue-300"
+        className=" h-8 mt-2 text-xs text-white bg-red-500 hover:bg-red-600 border border-red-500 px-2 py-1 rounded-md focus:outline-none focus:ring focus:border-blue-300"
       >
         Delete
       </button>
